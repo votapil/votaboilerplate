@@ -18,6 +18,7 @@ This boilerplate is designed from the ground up to be **"AI-First"** — it incl
 - **Permissions**: Spatie Laravel Permissions (RBAC).
 - **Database Architecture**: PostgreSQL 16 + Redis 7 (Cache & Sessions).
 - **CRUD Scaffolding**: `votapil/votacrudgenerator` (Database-first generation).
+- **Admin Panel**: `filament/filament` v3 (Auto-generated panels via `--generate`).
 - **OpenAPI / Swagger**: `dedoc/scramble` (Auto-generates docs without annotations).
 
 ### Frontend (SPA/SSR)

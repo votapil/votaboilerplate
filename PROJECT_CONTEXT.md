@@ -5,12 +5,13 @@ AI Assistants (Antigravity/Windsurf/Cursor) MUST update this document after comp
 
 ## Project Overview
 - **Name**: VotaBoilerplate
-- **Stack**: Laravel 12 (FrankenPHP) + Nuxt 3 (Vuetify/Pinia).
-- **Core Strategy**: Database-First CRUD (`votapil/votacrudgenerator`), TDD with Pest, and strict DDD/Action-oriented architecture.
+- **Stack**: Laravel 12 (FrankenPHP) + Nuxt 3 (Vuetify/Pinia). Admin panel is **Filament PHP v3**.
+- **Core Strategy**: Database-First CRUD (`votapil/votacrudgenerator` & `make:filament-resource --generate`), TDD with Pest, and strict DDD/Action-oriented architecture.
 
 ## Current Phase
 - [x] Initial full-stack scaffolding.
 - [x] Advanced AI & DX augmentations (Typescript sync, Scramble, TDD workflows).
+- [x] Admin Panel (Filament PHP) integration.
 - [ ] Application Core Logic Implementation (Next Step).
 
 ## Completed Features

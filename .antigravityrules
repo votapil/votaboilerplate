@@ -45,3 +45,7 @@ When asked to create a new CRUD, resource, or model with its related files:
    `make artisan args="vota:crud {ModelName}"`
 4. The package will automatically introspect the database and generate all necessary files based on the concrete table schema (columns, types, foreign keys, soft deletes, and comments).
 5. Only make manual edits to the generated files if specific custom business logic is requested.
+## Admin Panel (Filament PHP v3)
+- The application uses **Filament PHP** as its primary admin interface (`/admin`).
+- When scaffolding new entities, the AI must automatically generate the corresponding Filament resource directly after `vota:crud`.
+- ALWAYS use the `--generate` flag: `make artisan args="make:filament-resource {ModelName} --generate"`. This forces Filament to read the database schema and automatically build forms and tables without manual UI coding.

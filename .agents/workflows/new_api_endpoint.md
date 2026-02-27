@@ -30,7 +30,12 @@ When asked to add a new API endpoint or model resource, you must follow this str
   - The `Factory`
 - It will also automatically append the API endpoint to `routes/api.php`.
 
-## 5. Verify and Test
+## 5. Generate Admin Interface (Filament)
+- Run `make artisan args="make:filament-resource {ModelName} --generate"`
+- The `--generate` flag is MANDATORY. It ensures Filament introspects the database and automatically builds the Table columns and Form inputs matching what we generated in Step 4.
+- This creates `app/Filament/Resources/{ModelName}Resource.php` and its pages.
+
+## 6. Verify and Test
 - The generated code is production-ready for standard CRUD operations. **DO NOT** rewrite the Controller or create DTOs/Actions manually unless explicitly requested to implement complex external business logic.
 - Run `make artisan make:test {ModelName}EndpointTest --pest`
 - Write Pest Feature tests to cover successful API creation, validation errors, and unauthorized access.
