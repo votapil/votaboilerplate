@@ -9542,12 +9542,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/votapil/VotaCrudGenerator.git",
-                "reference": "3e77c4a0a74b4119d3f56d63b88dd1d62a203465"
+                "reference": "d408c038e617eb41e711fb5245300b764b116e91"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/votapil/VotaCrudGenerator/zipball/3e77c4a0a74b4119d3f56d63b88dd1d62a203465",
-                "reference": "3e77c4a0a74b4119d3f56d63b88dd1d62a203465",
+                "url": "https://api.github.com/repos/votapil/VotaCrudGenerator/zipball/d408c038e617eb41e711fb5245300b764b116e91",
+                "reference": "d408c038e617eb41e711fb5245300b764b116e91",
                 "shasum": ""
             },
             "require": {
@@ -9613,7 +9613,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-27T13:50:49+00:00"
+            "time": "2026-02-27T17:23:46+00:00"
         }
     ],
     "packages-dev": [
