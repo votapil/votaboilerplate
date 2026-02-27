@@ -18,9 +18,11 @@ This boilerplate is designed from the ground up to be **"AI-First"** — it incl
 - **Permissions**: Spatie Laravel Permissions (RBAC).
 - **Database Architecture**: PostgreSQL 16 + Redis 7 (Cache & Sessions).
 - **CRUD Scaffolding**: `votapil/votacrudgenerator` (Database-first generation).
+- **OpenAPI / Swagger**: `dedoc/scramble` (Auto-generates docs without annotations).
 
 ### Frontend (SPA/SSR)
 - **Framework**: Nuxt 3 (Vue 3 Composition API).
+- **TypeScript Sync**: `spatie/laravel-typescript-transformer` (Auto-generates TS interfaces from PHP DTOs/Models).
 - **UI/UX System**: Vuetify 3 (Material Design 3).
 - **State Management**: Pinia.
 
@@ -56,6 +58,7 @@ This boilerplate is designed from the ground up to be **"AI-First"** — it incl
 
 4. **Verify it's running:**
    - **Backend API**: `http://localhost:80` (or `https://localhost:443`)
+   - **OpenAPI Swagger Docs**: `http://localhost/docs/api` (Generated automatically by Scramble)
    - **Frontend UI**: `http://localhost:3000`
    - **Horizon Dashboard**: `http://localhost/horizon`
 
@@ -72,6 +75,10 @@ The global rule file for the Agentic IDE. It enforces:
 - Usage of **Actions** for complex business logic (beyond standard CRUD scaffolding).
 - Prohibition of `static` variables (to ensure **Octane compliance**).
 - Avoidance of N+1 database queries.
+
+### `PROJECT_CONTEXT.md` & `docs/db_schema.md`
+- **Memory Protocol**: The AI updates `PROJECT_CONTEXT.md` after every completed feature to never lose context across sessions.
+- **DB Schema Map**: Run `make schema-map` to generate a bird's-eye markdown view of your entire database structure, acting as a perfect guide for AI migrations.
 
 ### `.agents/workflows/`
 Contains step-by-step Standard Operating Procedures (SOPs) for the AI.
@@ -104,6 +111,8 @@ The `Makefile` is your single entry point for all commands. **Do not run `php ar
 | `make artisan ...` | Run any artisan command (e.g. `make artisan migrate`) |
 | `make composer ...`| Run composer commands (e.g. `make composer install`) |
 | `make test` | Run Pest PHP feature tests |
+| `make ts-sync` | Auto-generate TypeScript definitions for Nuxt from PHP classes |
+| `make schema-map` | Auto-generate `docs/db_schema.md` to feed AI database context |
 
 ---
 

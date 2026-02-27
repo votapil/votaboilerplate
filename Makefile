@@ -63,6 +63,12 @@ migrate:
 migrate-fresh:
 	$(ARTISAN) migrate:fresh --seed
 
+ts-sync:
+	$(ARTISAN) typescript:transform
+
+schema-map:
+	$(ARTISAN) schema:markdown
+
 test:
 	$(EXEC_APP) php artisan test $(call args)
 
@@ -72,4 +78,4 @@ watch:
 build:
 	docker compose run --rm app npm run build
 
-.PHONY: rebuild down up app-shell worker-shell webapp-shell pg-shell redis-cli optimize tinker artisan composer composer-install migrate migrate-fresh test watch build
+.PHONY: rebuild down up app-shell worker-shell webapp-shell pg-shell redis-cli optimize tinker artisan composer composer-install migrate migrate-fresh ts-sync schema-map test watch build

@@ -19,9 +19,17 @@ You must follow these strict rules on every request.
 - Avoid using legacy "Formatters"; leverage Laravel's Resource classes.
 - API endpoints should be versioned (`api/v1/`).
 
-## Testing
+## Testing (TDD)
+- **Always follow the TDD Implementation Workflow (`.agents/workflows/tdd_implementation.md`)** when implementing logic.
 - Prioritize **Feature Tests** over Unit Tests. We want to test the full lifecycle of an endpoint.
 - Use **Pest PHP** for all new tests.
+
+## Memory & Project Context
+- **CRITICAL**: After completing any significant workflow, generating endpoints, or fixing bugs, you MUST update `PROJECT_CONTEXT.md` to reflect the latest state, completed features, and the immediate next step. This prevents context loss.
+- Always review `docs/db_schema.md` before designing a new feature. If you create or modify migrations, run `make artisan schema:markdown` to keep the DB schema map up to date.
+
+## Frontend (TypeScript Sync)
+- When generating or updating API Models/DTOs, add the `#[TypeScript]` attribute. The `spatie/laravel-typescript-transformer` package will generate TypeScript interfaces automatically in `webapp/types/generated.d.ts` via the `make artisan typescript:transform` command. This ensures the frontend Nuxt 3 app is strictly typed with the backend.
 
 ## Docker & Server (FrankenPHP / Octane)
 - The project runs on **FrankenPHP** (Laravel Octane). Operations must be completely stateless between requests.
