@@ -34,10 +34,11 @@ This boilerplate is designed from the ground up to be **"AI-First"** — it incl
 
 ### Local Environment Setup
 
-1. **Clone the repository:**
+1. **Create a new project from this template:**
+   Click the green **"Use this template"** button at the top of the GitHub repository page, or clone the repository directly:
    ```bash
-   git clone https://github.com/votapil/votaboilerplate.git
-   cd votaboilerplate
+   git clone https://github.com/votapil/votaboilerplate.git my-new-project
+   cd my-new-project
    ```
 
 2. **Configure Environment:**
