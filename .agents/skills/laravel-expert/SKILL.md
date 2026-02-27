@@ -12,7 +12,7 @@ date_added: "2026-02-27"
 
 Name: laravel-expert  
 Focus: General Laravel Development  
-Scope: Laravel Framework (10/11+)
+Scope: Laravel Framework (11+)
 
 ---
 
