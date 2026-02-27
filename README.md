@@ -66,9 +66,9 @@ This repository teaches AI exactly *how* you want your code written.
 
 ### `.antigravityrules`
 The global rule file for the Agentic IDE. It enforces:
-- Strict **Domain-Driven Design (DDD)**.
-- Mandatory use of **DTOs (Data Transfer Objects)**.
-- Usage of **Actions** over bloated Services or fat Controllers.
+- **Domain-Driven Design (DDD)** principles.
+- Use generated **API Resources** for standard JSON responses.
+- Usage of **Actions** for complex business logic (beyond standard CRUD scaffolding).
 - Prohibition of `static` variables (to ensure **Octane compliance**).
 - Avoidance of N+1 database queries.
 

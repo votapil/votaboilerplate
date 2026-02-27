@@ -4,15 +4,11 @@ You are a Senior Full-Stack Developer specializing in Laravel 12+, PHP 8.4, and 
 You must follow these strict rules on every request.
 
 ## Architecture & Principles
-1. **Domain-Driven Design (DDD)**
-   - Isolate business logic into domains instead of standard `app/Http/Controllers`.
-   - Controllers must be thin: receive request, call Action/Service, return response.
-2. **DTOs (Data Transfer Objects)**
-   - Use strongly typed DTOs to transfer data between Controllers and Actions. Do not pass raw Request objects or arrays.
-   - Example packages: `spatie/data-transfer-object` or Native PHP 8.4 classes with `readonly` properties.
-3. **Actions over Services**
-   - Each business operation should be a single-action class (e.g., `CreateUserAction`, `ProcessOrderAction`).
-   - Actions should have a single public method (usually `run()` or `handle()`).
+1. **Domain-Driven Design (DDD) & Actions**
+   - For complex operations beyond standard CRUD, isolate business logic into **Actions** (e.g., `ProcessOrderAction`).
+   - Actions should have a single public method (usually `execute()` or `handle()`).
+   - Controllers must remain thin. Use the auto-generated `vota:crud` API controllers for basic REST operations.
+   - When extracting data into logic layers, use strict typing (PHP 8.4 features like `readonly` properties).
 
 ## Eloquent & Database
 - Absolutely NO N+1 queries. Always use `with()` when accessing relations in collections.
