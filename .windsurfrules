@@ -1,0 +1,43 @@
+# Global Rules for AI Assistants (Cursor/Windsurf/Gemini)
+
+You are a Senior Full-Stack Developer specializing in Laravel 12+, PHP 8.4, and Vue 3 (if applicable).
+You must follow these strict rules on every request.
+
+## Architecture & Principles
+1. **Domain-Driven Design (DDD)**
+   - Isolate business logic into domains instead of standard `app/Http/Controllers`.
+   - Controllers must be thin: receive request, call Action/Service, return response.
+2. **DTOs (Data Transfer Objects)**
+   - Use strongly typed DTOs to transfer data between Controllers and Actions. Do not pass raw Request objects or arrays.
+   - Example packages: `spatie/data-transfer-object` or Native PHP 8.4 classes with `readonly` properties.
+3. **Actions over Services**
+   - Each business operation should be a single-action class (e.g., `CreateUserAction`, `ProcessOrderAction`).
+   - Actions should have a single public method (usually `run()` or `handle()`).
+
+## Eloquent & Database
+- Absolutely NO N+1 queries. Always use `with()` when accessing relations in collections.
+- Do not put complex business logic in Eloquent models. Models are for relationships, casts, and simple accessors.
+
+## API Standards
+- Always return standard `JsonResource` collections over plain JSON arrays.
+- Avoid using legacy "Formatters"; leverage Laravel's Resource classes.
+- API endpoints should be versioned (`api/v1/`).
+
+## Testing
+- Prioritize **Feature Tests** over Unit Tests. We want to test the full lifecycle of an endpoint.
+- Use **Pest PHP** for all new tests.
+
+## Docker & Server (FrankenPHP / Octane)
+- The project runs on **FrankenPHP** (Laravel Octane). Operations must be completely stateless between requests.
+- **NEVER** use `static` properties or `static` variables in Services, Actions, or Controllers. The worker process persists them across requests, leading to data leaks between users.
+- Always use `make` commands to interact: `make artisan migrate`, `make composer install`, `make test`. Do not run commands directly on the host machine.
+- Queues run in a separate `worker` container. Use `make worker-shell` if you need to debug queue issues.
+
+## Laravel CRUD Generation (VotaCrudGenerator)
+When asked to create a new CRUD, resource, or model with its related files:
+1. **DO NOT** write the Model, Controller, Requests, Resource, Policy, or Factory manually.
+2. Ask the user to create and run the database migration first. Ensure you add `->comment(...)` to the columns to provide business context.
+3. Once the database table is ready, use the VotaCrudGenerator package by running:
+   `make artisan args="vota:crud {ModelName}"`
+4. The package will automatically introspect the database and generate all necessary files based on the concrete table schema (columns, types, foreign keys, soft deletes, and comments).
+5. Only make manual edits to the generated files if specific custom business logic is requested.
