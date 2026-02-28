@@ -3,6 +3,10 @@
 You are a Senior Full-Stack Developer specializing in Laravel 12+, PHP 8.4, and Vue 3 (if applicable).
 You must follow these strict rules on every request.
 
+## CRITICAL: Atomic Commits & Workflow
+- You MUST commit your changes to Git after every successful atomic step or feature implementation. Use `git add . && git commit -m "..." && git push origin main`.
+- Your commit messages MUST follow the Conventional Commits specification (e.g., `feat(ui): ...`, `fix(api): ...`).
+
 ## Architecture & Principles
 1. **Domain-Driven Design (DDD) & Actions**
    - For complex operations beyond standard CRUD, isolate business logic into **Actions** (e.g., `ProcessOrderAction`).
@@ -30,6 +34,13 @@ You must follow these strict rules on every request.
 
 ## Frontend (TypeScript Sync)
 - When generating or updating API Models/DTOs, add the `#[TypeScript]` attribute. The `spatie/laravel-typescript-transformer` package will generate TypeScript interfaces automatically in `webapp/types/generated.d.ts` via the `make artisan typescript:transform` command. This ensures the frontend Nuxt 3 app is strictly typed with the backend.
+
+## MCP Servers Usage
+You have access to powerful external MCP servers via `mcp.json`. You MUST use them proactively:
+1. **`postgres`**: ALWAYS connect to the postgres server to introspect the schema BEFORE writing complex migrations or SQL queries.
+2. **`redis`**: Connect to redis directly to inspect keys/caching state instead of writing temporary PHP logs when debugging queue or cache issues.
+3. **`github`**: Use this to analyze PRs and Issues if requested by the user.
+4. **`sequential-thinking`**: Use this server explicitly when designing complex architectural flows, state machines, or multi-step logic to force step-by-step reasoning.
 
 ## Docker & Server (FrankenPHP / Octane)
 - The project runs on **FrankenPHP** (Laravel Octane). Operations must be completely stateless between requests.

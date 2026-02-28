@@ -1,6 +1,9 @@
 include docker/.env
 export $(shell sed 's/=.*//' docker/.env)
 
+export UID=$(shell id -u)
+export GID=$(shell id -g)
+
 EXEC_APP      = docker compose exec app
 EXEC_WORKER   = docker compose exec worker
 EXEC_PG       = docker compose exec postgres
