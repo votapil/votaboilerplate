@@ -1,129 +1,94 @@
-<p align="center"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></p>
+# VotaBoilerplate
 
-# Laravel 12 AI-First Boilerplate
+An opinionated Laravel 12 + Nuxt 4 starter for projects that will be written **with coding agents**.
+It is not a demo app: there is no domain code in it. What it ships is the part that usually gets
+improvised badly in the first weeks — a container stack that runs, a versioned API skeleton with
+auth, tenant scoping and a real health check, an admin panel, a test setup that does not lie, a CI
+gate, and a set of rules and pitfall notes distilled from six months of running one of these in
+production.
 
-Welcome to the **VotaBoilerplate**, a highly-opinionated, production-ready full-stack template built on **Laravel 12** and **Nuxt 3**. 
+## Stack
 
-This boilerplate is designed from the ground up to be **"AI-First"** — it includes built-in skills, rules, and workflows specifically tailored for Agentic IDEs (like Antigravity, Cursor, or Windsurf) to write clean, maintainable, and architecturally sound code automatically.
+**Backend** — Laravel 12 / PHP 8.4 on FrankenPHP + [Octane](https://laravel.com/docs/octane),
+PostgreSQL 16, Redis 7, [Horizon](https://laravel.com/docs/horizon) queues,
+[Sanctum](https://laravel.com/docs/sanctum) token auth, [spatie/laravel-permission] roles,
+[Filament 3](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
+`votapil/votacrudgenerator` for database-first scaffolding, Pest 3 + Pint.
 
----
+**Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 3, Pinia and vue-i18n in `webapp/`,
+typed against the backend by `spatie/laravel-typescript-transformer`, unit-tested with Vitest.
 
-## 🚀 Core Technologies
+**Locales** — `en` and `ru` on both sides, kept in sync by a parity test.
 
-### Backend (API)
-- **Framework**: Laravel 12 + PHP 8.4
-- **Server**: FrankenPHP (via Laravel Octane) for maximum performance.
-- **Queue/Jobs**: Laravel Horizon (running in a dedicated worker container).
-- **Authentication**: Laravel Passport (OAuth2).
-- **Permissions**: Spatie Laravel Permissions (RBAC).
-- **Database Architecture**: PostgreSQL 16 + Redis 7 (Cache & Sessions).
-- **CRUD Scaffolding**: `votapil/votacrudgenerator` (Database-first generation).
-- **Admin Panel**: `filament/filament` v3 (Auto-generated panels via `--generate`).
-- **OpenAPI / Swagger**: `dedoc/scramble` (Auto-generates docs without annotations).
+[spatie/laravel-permission]: https://spatie.be/docs/laravel-permission
 
-### Frontend (SPA/SSR)
-- **Framework**: Nuxt 3 (Vue 3 Composition API).
-- **TypeScript Sync**: `spatie/laravel-typescript-transformer` (Auto-generates TS interfaces from PHP DTOs/Models).
-- **UI/UX System**: Vuetify 3 (Material Design 3).
-- **State Management**: Pinia.
+## Quick start
 
----
+Requires Docker, `make`, and nothing else on the host.
 
-## 🛠️ Getting Started
+```bash
+make init              # .env and docker/.env from the examples
+make up                # start app, webapp, worker, postgres, redis
+make composer-install
+make artisan key:generate
+make migrate
+make test              # Pest, in parallel, against a separate test database
+```
 
-### Prerequisites
-- Docker & Docker Compose
-- `make` utility
+Local URLs — API `http://localhost:8080`, SPA `http://localhost:3000`, admin
+`http://localhost:8080/admin`, deep health check `http://localhost:8080/healthz`. The full table,
+including the Postgres and Redis ports, is in **[docs/LINKS.md](docs/LINKS.md)**.
 
-### Local Environment Setup
+`make help` lists every target. The one worth remembering is **`make verify`** — Pint, Pest, Vitest
+and the Nuxt build in one command, i.e. exactly what CI (`.github/workflows/test.yml`) runs. Deploy
+workflows are deliberately not included: wire yours up as a separate workflow with
+`needs: [backend, frontend]` so nothing ever ships red.
 
-1. **Create a new project from this template:**
-   Click the green **"Use this template"** button at the top of the GitHub repository page, or clone the repository directly:
-   ```bash
-   git clone https://github.com/votapil/votaboilerplate.git my-new-project
-   cd my-new-project
-   ```
+## What an agent reads in this repository
 
-2. **Configure Environment:**
-   ```bash
-   cp .env.example .env
-   cp docker/.env.example docker/.env # (If applicable)
-   ```
-
-3. **Build & Start Containers:**
-   Our custom Makefile wraps Docker operations for convenience.
-   ```bash
-   make rebuild
-   ```
-   *This takes a few minutes as it compiles FrankenPHP with PHP 8.4 and Node.js for the frontend.*
-
-4. **Verify it's running:**
-   - **Backend API**: `http://localhost:80` (or `https://localhost:443`)
-   - **OpenAPI Swagger Docs**: `http://localhost/docs/api` (Generated automatically by Scramble)
-   - **Frontend UI**: `http://localhost:3000`
-   - **Horizon Dashboard**: `http://localhost/horizon`
-
----
-
-## 🤖 AI Integration & Rules
-
-This repository teaches AI exactly *how* you want your code written.
-
-### `.antigravityrules`
-The global rule file for the Agentic IDE. It enforces:
-- **Domain-Driven Design (DDD)** principles.
-- Use generated **API Resources** for standard JSON responses.
-- Usage of **Actions** for complex business logic (beyond standard CRUD scaffolding).
-- Prohibition of `static` variables (to ensure **Octane compliance**).
-- Avoidance of N+1 database queries.
-
-### `PROJECT_CONTEXT.md` & `docs/db_schema.md`
-- **Memory Protocol**: The AI updates `PROJECT_CONTEXT.md` after every completed feature to never lose context across sessions.
-- **DB Schema Map**: Run `make schema-map` to generate a bird's-eye markdown view of your entire database structure, acting as a perfect guide for AI migrations.
-
-### `.agents/workflows/`
-Contains step-by-step Standard Operating Procedures (SOPs) for the AI.
-- `new_api_endpoint.md`: Instructs the AI to design migrations, run `php artisan vota:crud`, and then manually extract complex business logic into DTOs and Actions.
-
-### `.agents/skills/`
-Context files defining the "personas" and technical baselines for the AI:
-- `laravel_architecture.md`: Project-specific architectural boundaries (Octane, Horizon, Spatie Permissions).
-- `laravel-expert`: Enforces Senior-level Laravel techniques.
-- `laravel-security-audit`: Reviews code against OWASP standards.
-- `vue3-nuxt3-expert`: Enforces Composition API, Nuxt 3 auto-imports, and Pinia.
-- `vuetify3-material-design`: Enforces Material Design 3 guidelines utilizing Vuetify components over custom CSS.
-
----
-
-## ⚙️ Quick Commands (Makefile)
-
-The `Makefile` is your single entry point for all commands. **Do not run `php artisan` on your host machine.**
-
-| Command | Description |
+| File | Purpose |
 |---|---|
-| `make up` | Start all Docker containers in detached mode |
-| `make down` | Stop and remove all containers |
-| `make rebuild` | Force rebuild all Docker images from scratch |
-| `make app-shell` | SSH into the main FrankenPHP (API) container |
-| `make worker-shell`| SSH into the Queue/Horizon worker container |
-| `make webapp-shell`| SSH into the Nuxt 3 (Frontend) container |
-| `make pg-shell` | Drop into `psql` interactive prompt |
-| `make redis-cli` | Drop into `redis-cli` interactive prompt |
-| `make artisan ...` | Run any artisan command (e.g. `make artisan migrate`) |
-| `make composer ...`| Run composer commands (e.g. `make composer install`) |
-| `make test` | Run Pest PHP feature tests |
-| `make ts-sync` | Auto-generate TypeScript definitions for Nuxt from PHP classes |
-| `make schema-map` | Auto-generate `docs/db_schema.md` to feed AI database context |
+| `CLAUDE.md` | **The only rules file**, ≤ 6 KB, loaded into every session. `AGENTS.md` is a symlink to it, never a copy |
+| `docs/PITFALLS.md` | Where this stack already burned us — read before touching Redis, queues, routing, uploads, tests or a deploy |
+| `docs/RECIPES.md` | The generator pipelines step by step, including what the generators always get wrong |
+| `docs/notes/INDEX.md` | Lessons learned: an index of one-liners, one fact per file |
+| `docs/LINKS.md` | Every address of the system and how you get let in. No secrets |
+| `docs/db_schema.md`, `docs/permissions.md` | Generated from the code — the only documentation that cannot silently rot |
+| `PROJECT_CONTEXT.md` | Current state of the project: fixed sections, size caps, rotation rule |
+| `.claude/skills/` | Skills for the stack (Laravel, Nuxt/Vuetify, testing, security, i18n) plus the spec-driven workflow |
+| `.claude/settings.json` | Permission allow-list for `make`/docker, and a hard deny on reading `archive/` |
+| `.mcp.json` | MCP servers: Postgres (read-only mode), Redis, and the app's own Laravel MCP endpoint |
 
----
+Two conventions keep this from turning into the pile it was distilled from: **one source of rules**
+(no second copy for another IDE — they drift and start contradicting each other), and **a budget on
+every file that gets read automatically** (a topic longer than ~15 lines moves into `docs/` and
+leaves a trigger line behind).
 
-## 📚 Development Workflow Example
+## Adding a feature
 
-Want to add a new entity (e.g., `Product`)? Let the AI handle the heavy lifting:
+Database-first, and the generators do the typing:
 
-1. Ask your AI Assistant to implement a new `Product` API endpoint.
-2. The AI reads `.agents/workflows/new_api_endpoint.md` and generates a migration file with `->comment()` annotations for context.
-3. You run `make artisan migrate`.
-4. The AI runs `make artisan args="vota:crud Product"` to scaffold the base REST API.
-5. For complex logic, the AI will inject an Action (e.g. `CreateProductAction`) and a DTO within the generated Controller.
-6. The AI writes a Pest Feature test and executes `make test`.
+```bash
+# 1. write the migration — every column gets a ->comment()
+make migrate
+# 2. scaffold the API from the live table
+make artisan args="vota:crud Product"
+# 3. scaffold the admin resource from the same table
+make artisan args="make:filament-resource Product --generate"
+# 4. Pest feature test, then make verify
+```
+
+Both generators leave mandatory manual fixes — the generated route lands **outside** the
+authenticated group, and a `--generate` Filament resource needs four edits before an operator can
+use it. Both are written out in [docs/RECIPES.md](docs/RECIPES.md).
+
+For larger work there is a spec-driven flow (`/speckit-specify` → `clarify` → `plan` → `tasks` →
+`implement`) with its artefacts in `specs/`; see [specs/README.md](specs/README.md). Small changes do
+not need it.
+
+## What is deliberately not here
+
+No deploy pipeline beyond the test gate, no realtime/WebSocket layer, no self-hosted monitoring
+stack, no design system, no example domain. Each of those was built in the project this template
+came from and each turned out to be either environment-specific or dead weight. Add them when the
+product actually asks for them.

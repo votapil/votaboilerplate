@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "uvx",
+      "args": ["postgres-mcp", "--access-mode=restricted"],
+      "env": {
+        "DATABASE_URI": "postgresql://app:secret@localhost:5433/app"
+      }
+    },
+    "redis": {
+      "command": "uvx",
+      "args": ["--from", "redis-mcp-server", "redis-mcp-server", "--url", "redis://:secret@localhost:6380/0"]
+    },
+    "laravel-app": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp/app"
+    }
+  }
+}

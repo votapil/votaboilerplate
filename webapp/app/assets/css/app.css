@@ -1,0 +1,47 @@
+/*
+ * Typography and shape rules that Vuetify exposes only through SCSS variables, so they are set
+ * here instead. Anything expressible as a theme token or a component default belongs in
+ * nuxt.config.ts, not in this file — keep it short.
+ */
+
+:root {
+  /*
+   * A system font stack: no webfont request, no flash of unstyled text, no CDN dependency,
+   * and correct Cyrillic on every platform. Swap in a brand face when there is one — and then
+   * self-host it, so the app still renders with the network unplugged.
+   */
+  --app-font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+.v-application {
+  font-family: var(--app-font-family);
+}
+
+/*
+ * Headings: weight carries the hierarchy, not letter-spacing. Vuetify's default tracking on
+ * the display sizes was designed for Latin caps and looks loose in Cyrillic.
+ */
+.v-application .text-h1,
+.v-application .text-h2,
+.v-application .text-h3,
+.v-application .text-h4,
+.v-application .text-h5,
+.v-application .text-h6 {
+  font-family: var(--app-font-family);
+  letter-spacing: 0;
+}
+
+/* Sentence-case buttons (see the VBtn default `text-none`) want neutral tracking too. */
+.v-btn {
+  letter-spacing: 0;
+}
+
+/*
+ * Numbers that sit in a column — amounts, counters, durations — must not jitter as digits
+ * change. Apply to the cell, not to the whole table.
+ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,35 +1,53 @@
-# Project Context
+# PROJECT_CONTEXT — current state
 
-This document maintains the high-level memory and current state of the project.
-AI Assistants (Antigravity/Windsurf/Cursor) MUST update this document after completing any significant feature, workflow, or bug fix. This serves as a "long-term memory" to prevent context loss across IDE sessions.
+> **This is a state file, not a diary.** In the project this template came from, the same file grew
+> 0 → 209 KB in six months because the rule said "append after every feature" and nothing ever said
+> "read" or "shorten". So here the rules come first and they are binding.
+>
+> 1. **Budget: ≤ 8 KB.** Over budget → shorten before you add.
+> 2. **The six sections below are fixed.** Don't add sections, don't append below the last one.
+> 3. **Every section has a line cap.** At the cap you rewrite, not append: merge, drop what is no
+>    longer true, keep the newest fact.
+> 4. **Rotation.** What falls out of a section either dies (it was noise) or becomes
+>    `docs/notes/<slug>.md` + one line in `docs/notes/INDEX.md` (it was a lesson). Never both.
+> 5. **No history.** "What we did on 12.07" belongs in git log. This file answers only: what is this,
+>    what works, what is being done right now, what is next.
+> 6. Update it when the answer to one of those questions changed — not after every commit.
 
-## Project Overview
-- **Name**: VotaBoilerplate
-- **Stack**: Laravel 12 (FrankenPHP) + Nuxt 3 (Vuetify/Pinia). Admin panel is **Filament PHP v3**.
-- **Core Strategy**: Database-First CRUD (`votapil/votacrudgenerator` & `make:filament-resource --generate`), TDD with Pest, and strict DDD/Action-oriented architecture.
+## 1. What this project is (≤ 8 lines)
 
-## Current Phase
-- [x] Initial full-stack scaffolding.
-- [x] Advanced AI & DX augmentations (Typescript sync, Scramble, TDD workflows).
-- [x] Admin Panel (Filament PHP) integration.
-- [x] Advanced MCP & Docker UX Fixes (Phase 7).
-- [ ] Application Core Logic Implementation (Next Step).
+- Name:
+- One sentence about what it does and for whom:
+- Who the users are and how they get in (web / mobile / bot / admin only):
 
-## Completed Features
-### Foundation (Late Feb 2026)
-- Docker Swarm configured (App, Worker, DB, Redis).
-- Nuxt 3 webapp integrated via Docker Compose.
-- Passport OAuth2 and Spatie Permissions installed.
-- AI Skills (`.antigravityrules`, `workflows/`, `skills/`) firmly established.
-- TypeScript Transformer & Dedoc Scramble implemented.
-- **Advanced MCP & Docker DX**:
-  - `laravel/mcp` Server-Sent Events integration via `AppServer.php`.
-  - External MCP servers configured (`mcp.json`).
-  - Docker Permission Denied issues fixed via native UID/GID shadow mapping.
-  - Upgraded base image to FrankenPHP 1.4 + PHP 8.4.
+## 2. Stack and entry points (≤ 12 lines)
 
-## Pending Architecture Decisions / Unknowns
-- N/A
+- Backend: Laravel 12 / PHP 8.4 on FrankenPHP + Octane, Postgres 16, Redis 7, Horizon.
+- Frontend: Nuxt 4 + Vuetify 3 + Pinia in `webapp/`.
+- Admin: Filament 3 at `/admin`. Auth: Sanctum tokens. Permissions: spatie, guard `web`.
+- API base: `/api/v1`. Health: `/healthz` (deep). Addresses and access: `docs/LINKS.md`.
+- Anything non-obvious about the local run:
 
-## Next Step Objective
-*AI to fill out next step here upon starting work!*
+## 3. What already works (≤ 25 lines, one line per capability)
+
+One line = one shipped capability + where its code lives. No dates, no "we decided", no prose.
+
+- [ ] example: user registration + password reset — `app/Http/Controllers/Api/V1/AuthController.php`
+
+## 4. In progress right now (≤ 8 lines)
+
+- Branch:
+- Task:
+- Where it stopped / what is half-done:
+- What must not be forgotten before the commit:
+
+## 5. Next step (≤ 4 lines)
+
+- 
+- 
+
+## 6. Open questions and decisions not made (≤ 8 lines)
+
+Only live ones. A question that got answered turns into code, a `docs/notes/` entry, or nothing.
+
+- 

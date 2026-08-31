@@ -1,0 +1,67 @@
+{
+  "app": {
+    "name": "App"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "email": "Email",
+    "language": "Language",
+    "loading": "Loading…",
+    "logout": "Log out",
+    "name": "Name",
+    "password": "Password",
+    "password_confirm": "Confirm password",
+    "retry": "Retry",
+    "save": "Save"
+  },
+  "nav": {
+    "admin": "Admin",
+    "home": "Home",
+    "more": "More",
+    "settings": "Settings"
+  },
+  "auth": {
+    "have_account": "Already have an account? Sign in",
+    "no_account": "No account yet? Sign up",
+    "sign_in": "Sign in",
+    "sign_in_subtitle": "Use your email and password.",
+    "sign_up": "Create account"
+  },
+  "password_req": {
+    "digit": "a digit",
+    "length": "8+ characters",
+    "letter": "a letter",
+    "symbol": "a symbol"
+  },
+  "home": {
+    "greeting": "Hello, {name}",
+    "none": "none",
+    "permissions": "Permissions granted",
+    "roles": "Roles",
+    "session_title": "Your session",
+    "subtitle": "This page is the starting point. Replace it with the first real screen.",
+    "title": "Home",
+    "today": "Today"
+  },
+  "settings": {
+    "appearance": "Appearance",
+    "saved": "Settings saved",
+    "theme": "Theme",
+    "theme_dark": "Dark",
+    "theme_light": "Light",
+    "theme_system": "Follow system",
+    "title": "Settings"
+  },
+  "admin_area": {
+    "gated_body": "You can see this page because your account holds the permission below. Anyone without it is redirected home, whether they use the menu or type the address.",
+    "gated_title": "Permission-gated page",
+    "open_panel": "Open admin panel",
+    "title": "Admin"
+  },
+  "errors": {
+    "network": "Network error. Check your connection.",
+    "unknown": "Something went wrong. Please try again.",
+    "update_reloading": "A new version is available — reloading…"
+  }
+}

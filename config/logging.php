@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\TelegramLogChannel;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -121,6 +122,19 @@ return [
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
+        ],
+
+        /*
+         * Production error pipe. One channel, always on, so an exception in
+         * production reaches a human without anyone opening a log file. The
+         * handler behind it must rate-limit itself and truncate traces — an
+         * unthrottled error bot turns one bad deploy into hundreds of messages
+         * and gets muted, which is worse than having no channel at all.
+         */
+        'telegram' => [
+            'driver' => 'custom',
+            'via' => TelegramLogChannel::class,
+            'level' => env('TELEGRAM_ERROR_LOG_LEVEL', 'error'),
         ],
 
         'emergency' => [

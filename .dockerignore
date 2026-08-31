@@ -1,0 +1,63 @@
+# What the production build must NOT copy into the image (docker/prod/*).
+# Without this file `COPY . .` ships vendor/, node_modules/, .git and — worse —
+# your local .env into an image layer that anyone who pulls it can read.
+
+# === Git & IDE ===
+.git
+.github
+.gitignore
+.gitattributes
+.editorconfig
+.idea/
+.vscode/
+.zed/
+.fleet/
+.nova/
+.phpactor.json
+
+# === Secrets & local config (never in a layer) ===
+.env
+.env.*
+!.env.example
+docker/.env
+auth.json
+
+# === Dependencies: installed inside the build, not copied in ===
+vendor/
+node_modules/
+webapp/node_modules/
+webapp/.nuxt*
+webapp/.output*
+
+# === Dev & CI artefacts ===
+*.log
+.DS_Store
+Thumbs.db
+tests/
+.phpunit.cache/
+.phpunit.result.cache
+storage/pail/
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/build/
+public/hot
+public/storage
+frankenphp
+frankenphp-worker.php
+**/caddy
+
+# === Local-only tooling: the dev images and the compose stack ===
+docker-compose*.yml
+Makefile
+docker/app/
+docker/postgres/
+
+# === Docs & agent instructions ===
+*.md
+docs/
+specs/
+.agents/
+.claude/
+.antigravityrules

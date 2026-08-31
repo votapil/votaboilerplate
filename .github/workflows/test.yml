@@ -1,0 +1,134 @@
+name: Tests
+
+# The gate. Backend AND frontend, because a broken .vue is not a backend
+# failure: with only Pest in CI it survives every check and dies during the
+# deploy build, ten minutes after you thought you were done.
+#
+# Deploy jobs are deliberately not part of this template — wire yours up as a
+# separate workflow with `needs: [backend, frontend]` so nothing ships red.
+on:
+  push:
+    # A pull request from a branch of this repository is already covered by the
+    # push run on that branch, so `push` alone means one run per commit.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'specs/**'
+      - '.claude/**'
+      - '.agents/**'
+  workflow_dispatch:
+
+# A new push to the same branch makes the previous run pointless.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Pest + Pint)
+    runs-on: ubuntu-latest
+
+    services:
+      # Credentials and database name must match what phpunit.xml forces, or the
+      # suite connects to nothing.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: app_testing
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # phpunit.xml pins DB_HOST=postgres (the compose hostname) so that a test
+      # run can never point at the development database by accident. Service
+      # containers answer on localhost, so give those names a local address.
+      - name: Alias service hostnames
+        run: echo "127.0.0.1 postgres redis" | sudo tee -a /etc/hosts
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, gd, intl, zip, pcntl, redis, bcmath
+          coverage: none
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        # Anonymous GitHub API calls are rate-limited per runner IP; the job's own
+        # token lifts that without any secret of ours.
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ github.token }}"}}'
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # .env.example ships an empty APP_KEY, and an empty key that reaches the
+      # test process as a real environment variable beats phpunit.xml's own
+      # value — the suite then dies on the first encrypted cookie. Generate one.
+      - name: Prepare env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # APP_KEY, the database and the cache/queue/session drivers all come from
+      # phpunit.xml. Only REDIS_PASSWORD needs overriding: .env.example carries
+      # the compose password and this redis has none.
+      #
+      # Sequential on purpose. `make test` runs --parallel locally, where compose
+      # gives postgres max_locks_per_transaction=256; a service container cannot
+      # be given that flag, so parallel teardown here would fail as the schema grows.
+      - name: Pest
+        env:
+          REDIS_PASSWORD: ''
+        run: php artisan test
+
+      # After the tests: formatting is the least urgent failure, and running it
+      # first would hide the test result behind a missing blank line.
+      - name: Pint
+        run: vendor/bin/pint --test
+
+  frontend:
+    name: Frontend (Vitest + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webapp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Vitest
+        run: npm run test
+
+      # Unit tests never import most components. The build compiles every one of
+      # them, which is what actually catches a typo in a template.
+      - name: Build
+        run: npm run build

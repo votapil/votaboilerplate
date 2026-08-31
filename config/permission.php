@@ -1,5 +1,9 @@
 <?php
 
+use Spatie\Permission\DefaultTeamResolver;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
 return [
 
     'models' => [
@@ -13,7 +17,7 @@ return [
          * `Spatie\Permission\Contracts\Permission` contract.
          */
 
-        'permission' => Spatie\Permission\Models\Permission::class,
+        'permission' => Permission::class,
 
         /*
          * When using the "HasRoles" trait from this package, we need to know which
@@ -24,7 +28,7 @@ return [
          * `Spatie\Permission\Contracts\Role` contract.
          */
 
-        'role' => Spatie\Permission\Models\Role::class,
+        'role' => Role::class,
 
     ],
 
@@ -105,10 +109,15 @@ return [
 
     /*
      * When set to true, Laravel\Octane\Events\OperationTerminated event listener will be registered
-     * this will refresh permissions on every TickTerminated, TaskTerminated and RequestTerminated
-     * NOTE: This should not be needed in most cases, but an Octane/Vapor combination benefited from it.
+     * this will refresh permissions on every TickTerminated, TaskTerminated and RequestTerminated.
+     *
+     * TRUE IS MANDATORY HERE: this app runs on Octane, where the worker process stays
+     * alive between requests and keeps Spatie's in-memory permission registry with it.
+     * Left false, a permission granted or revoked in one request is invisible to the
+     * next request served by that same worker until it restarts — the classic "I gave
+     * the role in the admin panel and nothing changed" bug.
      */
-    'register_octane_reset_listener' => false,
+    'register_octane_reset_listener' => true,
 
     /*
      * Events will fire when a role or permission is assigned/unassigned:
@@ -136,14 +145,7 @@ return [
     /*
      * The class to use to resolve the permissions team id
      */
-    'team_resolver' => \Spatie\Permission\DefaultTeamResolver::class,
-
-    /*
-     * Passport Client Credentials Grant
-     * When set to true the package will use Passports Client to check permissions
-     */
-
-    'use_passport_client_credentials' => false,
+    'team_resolver' => DefaultTeamResolver::class,
 
     /*
      * When set to true, the required permission names are added to exception messages.
@@ -183,7 +185,7 @@ return [
          * When permissions or roles are updated the cache is flushed automatically.
          */
 
-        'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+        'expiration_time' => DateInterval::createFromDateString('24 hours'),
 
         /*
          * The cache key used to store all permissions.

@@ -1,8 +1,6 @@
 *.log
 .DS_Store
-.env
-.env.backup
-.env.production
+Thumbs.db
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -21,8 +19,37 @@
 /vendor
 Homestead.json
 Homestead.yaml
-Thumbs.db
 
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+# Environment. docker/.env is covered by the `.env` rule below (it matches at any
+# depth) — its .example counterpart is committed on purpose, a clone that cannot
+# run `make up` is a broken template.
+.env
+.env.backup
+.env.production
+.env.*.local
+# Explicit as well, so that narrowing the rule above to `/.env` some day cannot
+# quietly start tracking local credentials.
+docker/.env
+
+# Frontend build output, by glob and not by exact name. Exact `.nuxt` / `.output`
+# rules miss the rescue copies that appear the moment docker writes those
+# directories as root (.nuxt.bak.77337, .nuxt-root-bak, .output-root-bak) — that
+# is how 240 build files / ~15 MB reached git in the previous project. The
+# user-mapping on the `webapp` service is the actual fix; this is the seatbelt.
+.nuxt*
+.output*
+.nitro
+.data
+*.bak
+*.bak.*
+*-bak/
+*-backup/
+*.orig
+*.rej
+
+# Agent-local settings (personal, not shared)
+.claude/settings.local.json

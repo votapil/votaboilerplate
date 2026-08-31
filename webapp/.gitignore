@@ -1,13 +1,19 @@
-# Nuxt dev/build outputs
-.output
+# Nuxt dev/build outputs.
+# Globs, not exact names, on purpose: Docker writing these as root leads people to make
+# `.nuxt.bak`, `.output-root-bak` and friends, and exact patterns let 15 MB of build artefacts
+# into the repository.
+.nuxt*
+.output*
+.nitro*
 .data
-.nuxt
-.nitro
 .cache
 dist
 
 # Node dependencies
 node_modules
+
+# Test output
+coverage
 
 # Logs
 logs
