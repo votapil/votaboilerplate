@@ -26,6 +26,11 @@ return [
     |
     | Supported drivers: "local", "ftp", "sftp", "s3"
     |
+    | Note the 'throw' flag on every disk. Laravel's default is false, which
+    | makes a failed write return false and carry on — that is how a whole
+    | production bucket can quietly accept nothing while the app reports
+    | success. Fail loudly instead; a swallowed upload is found weeks later.
+    |
     */
 
     'disks' => [
@@ -34,7 +39,7 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => true,
-            'throw' => false,
+            'throw' => env('FILESYSTEM_THROW', true),
             'report' => false,
         ],
 
@@ -43,7 +48,7 @@ return [
             'root' => storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
-            'throw' => false,
+            'throw' => env('FILESYSTEM_THROW', true),
             'report' => false,
         ],
 
@@ -56,7 +61,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
+            'throw' => env('FILESYSTEM_THROW', true),
             'report' => false,
         ],
 

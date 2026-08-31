@@ -1,3 +1,47 @@
+# Local development stack. Variables come from docker/.env, which the Makefile
+# loads and exports (`make init` creates it from docker/.env.example).
+
+# One source of truth for the PHP containers: app, worker and scheduler must see
+# the same database and the same redis, and the two background containers must
+# never drift apart.
+x-php-env: &php-env
+  APP_ENV: ${APP_ENV:-local}
+  APP_DEBUG: ${APP_DEBUG:-true}
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_DATABASE: ${POSTGRES_DB}
+  DB_USERNAME: ${POSTGRES_USER}
+  DB_PASSWORD: ${POSTGRES_PASSWORD}
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  SESSION_DRIVER: redis
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  REDIS_PORT: "6379"
+
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: ./docker/app/horizon/Dockerfile
+    args:
+      PHP_VERSION: "8.4"
+      UID: ${UID:-1000}
+      GID: ${GID:-1000}
+  image: votaboilerplate-worker
+  restart: unless-stopped
+  environment: *php-env
+  volumes:
+    - .:/app
+  networks:
+    - votanet
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   app:
     build:
@@ -14,29 +58,18 @@ services:
       - "8443:443"
       - "8443:443/udp"
     environment:
-      - SERVER_NAME=:80
-      - APP_ENV=${APP_ENV:-local}
-      - APP_DEBUG=${APP_DEBUG:-true}
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=${POSTGRES_DB}
-      - DB_USERNAME=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - CACHE_STORE=redis
-      - QUEUE_CONNECTION=redis
-      - SESSION_DRIVER=redis
-      - REDIS_CLIENT=phpredis
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=6379
-      - OCTANE_SERVER=frankenphp
+      <<: *php-env
+      SERVER_NAME: ":80"
+      OCTANE_SERVER: frankenphp
     volumes:
       - .:/app
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - votanet
+    # /up is a shallow "PHP booted" probe and that is the right thing for a
+    # container liveness check. Point external uptime monitors at /healthz
+    # instead — it pings redis and the database, which is what actually breaks.
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost/up" ]
       interval: 5s
@@ -53,9 +86,18 @@ services:
     restart: unless-stopped
     working_dir: /app/webapp
     command: npm run dev
+    # Run as you, not as root: node writes .nuxt/, .output/ and node_modules/
+    # straight into the bind mount. Root-owned build output is how the previous
+    # project ended up with "rescue copies" (.nuxt.bak.*, .output-root-bak) and
+    # 15 MB of build artefacts committed to git.
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       - HOST=0.0.0.0
       - NUXT_PUBLIC_API_BASE=http://localhost:8080/api/v1
+      # An arbitrary host UID has no /etc/passwd entry inside the image, so HOME
+      # would resolve to / and npm would fail writing its cache.
+      - HOME=/tmp
+      - NPM_CONFIG_CACHE=/tmp/.npm
     ports:
       - "3000:3000"
       - "24678:24678"
@@ -63,55 +105,39 @@ services:
       - .:/app
     networks:
       - votanet
+    # service_started, NOT service_healthy: the frontend talks to the API at
+    # runtime, so a slow or flaky backend probe must not keep it from starting.
     depends_on:
       app:
-        condition: service_healthy
+        condition: service_started
 
   worker:
-    build:
-      context: .
-      dockerfile: ./docker/app/horizon/Dockerfile
-      args:
-        PHP_VERSION: 8.4
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-    image: votaboilerplate-worker
-    restart: unless-stopped
+    <<: *backend
     command: php artisan horizon
-    environment:
-      - APP_ENV=${APP_ENV:-local}
-      - APP_DEBUG=${APP_DEBUG:-true}
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=${POSTGRES_DB}
-      - DB_USERNAME=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - CACHE_STORE=redis
-      - QUEUE_CONNECTION=redis
-      - SESSION_DRIVER=redis
-      - REDIS_CLIENT=phpredis
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=6379
-    volumes:
-      - .:/app
-    networks:
-      - votanet
-    depends_on:
-      - postgres
-      - redis
-      - app
+
+  # Horizon processes QUEUED jobs — it does NOT run scheduled commands. Without
+  # this container everything in routes/console.php (or the scheduler) silently
+  # never runs: no failure, no log line, just work that quietly does not happen.
+  scheduler:
+    <<: *backend
+    command: php artisan schedule:work
 
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Parallel tests tear down every table of every worker database in one
+    # transaction and blow past the default max_locks_per_transaction=64 with a
+    # QueryException that looks like a random flake in unrelated code.
+    command: postgres -c max_locks_per_transaction=256
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgsql_data:/var/lib/postgresql/data
+      # Creates the separate <POSTGRES_DB>_testing database on first start; see
+      # `make test-db` if the volume already exists.
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
     networks:
       - votanet
     ports:
@@ -125,7 +151,12 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    # noeviction is deliberate and must stay: this redis holds the QUEUE and the
+    # SESSIONS, not just a cache. Under an eviction policy (allkeys-lru is the
+    # popular default) a backlog makes redis drop queued job payloads and
+    # sessions with zero errors anywhere — jobs that never ran, users logged out
+    # at random. Give the cache its own store/database before relaxing this.
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory-policy noeviction
     ports:
       - "6380:6379"
     volumes:
@@ -143,7 +174,6 @@ volumes:
   caddy_config:
   pgsql_data:
   redis_data:
-
 
 networks:
   votanet:

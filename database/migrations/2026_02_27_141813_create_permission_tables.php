@@ -4,11 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Tables of spatie/laravel-permission, published from the package and then
+ * given a ->comment() on every column, as the project rule requires. Behaviour
+ * is unchanged — if you ever re-publish the package migration, re-apply the
+ * comments.
+ *
+ * The rows in these tables are the runtime truth of the access matrix;
+ * App\Support\PermissionRegistry only supplies the defaults used the first time
+ * a permission is created.
+ */
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $teams = config('permission.teams');
@@ -20,30 +27,27 @@ return new class extends Migration
         throw_if(empty($tableNames), 'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         throw_if($teams && empty($columnNames['team_foreign_key'] ?? null), 'Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
 
-        /**
-         * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
-         */
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
-            $table->id(); // permission id
-            $table->string('name');
-            $table->string('guard_name');
-            $table->timestamps();
+            $table->id()->comment('Primary key');
+            $table->string('name')->comment('Permission name, e.g. admin.access; mirrors a case of App\Enums\PermissionName');
+            $table->string('guard_name')->comment('Auth guard the permission belongs to; this application only uses "web"');
+            $table->timestamp('created_at')->nullable()->comment('Row creation timestamp');
+            $table->timestamp('updated_at')->nullable()->comment('Last modification timestamp');
 
             $table->unique(['name', 'guard_name']);
         });
 
-        /**
-         * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
-         */
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
-            $table->id(); // role id
-            if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+            $table->id()->comment('Primary key');
+            if ($teams || config('permission.testing')) {
+                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable()->comment('Team the role is scoped to; null = global role');
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
-            $table->string('name');
-            $table->string('guard_name');
-            $table->timestamps();
+            $table->string('name')->comment('Role name, e.g. admin; see App\Support\PermissionRegistry::ROLES');
+            $table->string('guard_name')->comment('Auth guard the role belongs to; this application only uses "web"');
+            $table->timestamp('created_at')->nullable()->comment('Row creation timestamp');
+            $table->timestamp('updated_at')->nullable()->comment('Last modification timestamp');
+
             if ($teams || config('permission.testing')) {
                 $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
             } else {
@@ -52,18 +56,19 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
-            $table->unsignedBigInteger($pivotPermission);
+            $table->unsignedBigInteger($pivotPermission)->comment('FK to permissions.id');
 
-            $table->string('model_type');
-            $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->string('model_type')->comment('Model class holding the permission directly, e.g. App\Models\User');
+            $table->unsignedBigInteger($columnNames['model_morph_key'])->comment('Id of that model; polymorphic, so no foreign key');
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
 
             $table->foreign($pivotPermission)
-                ->references('id') // permission id
+                ->references('id')
                 ->on($tableNames['permissions'])
                 ->cascadeOnDelete();
+
             if ($teams) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key']);
+                $table->unsignedBigInteger($columnNames['team_foreign_key'])->comment('Team the grant is scoped to');
                 $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
 
                 $table->primary([$columnNames['team_foreign_key'], $pivotPermission, $columnNames['model_morph_key'], 'model_type'],
@@ -75,18 +80,19 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
-            $table->unsignedBigInteger($pivotRole);
+            $table->unsignedBigInteger($pivotRole)->comment('FK to roles.id');
 
-            $table->string('model_type');
-            $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->string('model_type')->comment('Model class holding the role, e.g. App\Models\User');
+            $table->unsignedBigInteger($columnNames['model_morph_key'])->comment('Id of that model; polymorphic, so no foreign key');
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
 
             $table->foreign($pivotRole)
-                ->references('id') // role id
+                ->references('id')
                 ->on($tableNames['roles'])
                 ->cascadeOnDelete();
+
             if ($teams) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key']);
+                $table->unsignedBigInteger($columnNames['team_foreign_key'])->comment('Team the grant is scoped to');
                 $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
 
                 $table->primary([$columnNames['team_foreign_key'], $pivotRole, $columnNames['model_morph_key'], 'model_type'],
@@ -98,16 +104,16 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission) {
-            $table->unsignedBigInteger($pivotPermission);
-            $table->unsignedBigInteger($pivotRole);
+            $table->unsignedBigInteger($pivotPermission)->comment('FK to permissions.id');
+            $table->unsignedBigInteger($pivotRole)->comment('FK to roles.id; a row here IS one cell of the access matrix');
 
             $table->foreign($pivotPermission)
-                ->references('id') // permission id
+                ->references('id')
                 ->on($tableNames['permissions'])
                 ->cascadeOnDelete();
 
             $table->foreign($pivotRole)
-                ->references('id') // role id
+                ->references('id')
                 ->on($tableNames['roles'])
                 ->cascadeOnDelete();
 
@@ -119,9 +125,6 @@ return new class extends Migration
             ->forget(config('permission.cache.key'));
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         $tableNames = config('permission.table_names');

@@ -36,9 +36,13 @@ return [
     |
     | Supported: "roadrunner", "swoole", "frankenphp"
     |
+    | The template's images ship FrankenPHP, so that is the default here too —
+    | Octane's own default is roadrunner, and forgetting OCTANE_SERVER in a new
+    | environment would boot a server binary that is not in the image.
+    |
     */
 
-    'server' => env('OCTANE_SERVER', 'roadrunner'),
+    'server' => env('OCTANE_SERVER', 'frankenphp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -193,6 +197,25 @@ return [
         'routes',
         'composer.lock',
         '.env',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | FrankenPHP / Caddy Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These environment variables are passed through to Caddy and override
+    | Octane's internal defaults. Without this block there is no way to hand
+    | Caddy a real hostname, and automatic Let's Encrypt TLS never engages in
+    | production. Set CADDY_SERVER_NAME to the public domain to enable it.
+    |
+    */
+
+    'caddy' => [
+        'env' => array_filter([
+            'CADDY_SERVER_SERVER_NAME' => env('CADDY_SERVER_NAME'),
+            'CADDY_GLOBAL_OPTIONS' => env('CADDY_GLOBAL_OPTIONS'),
+        ], fn ($value) => $value !== null),
     ],
 
     /*

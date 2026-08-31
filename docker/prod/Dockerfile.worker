@@ -1,0 +1,49 @@
+# =============================================================================
+# Production image for the background containers: the queue worker (Horizon)
+# and the scheduler. Same code, no web server.
+#
+# Run it twice with different commands — both are required:
+#   php artisan horizon        queued jobs
+#   php artisan schedule:work  scheduled commands (Horizon does NOT run these)
+# =============================================================================
+FROM php:8.4-cli-alpine
+
+ARG UID=1000
+ARG GID=1000
+
+# Compile the extensions with the toolchain in a virtual package and delete it
+# again, keeping only the runtime shared libraries. Worth the awkward single
+# RUN: it is the difference between a ~1GB and a ~400MB image, on an image that
+# gets pulled on every deploy.
+RUN set -eux; \
+    apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS postgresql-dev libpng-dev libjpeg-turbo-dev freetype-dev libzip-dev icu-dev shadow; \
+    apk add --no-cache libpq libpng libjpeg-turbo freetype libzip icu-libs; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install pdo_pgsql pgsql gd intl zip opcache pcntl bcmath; \
+    pecl install redis && docker-php-ext-enable redis; \
+    groupmod -g ${GID} www-data && usermod -u ${UID} -g ${GID} www-data; \
+    apk del .build-deps; \
+    rm -rf /tmp/pear /var/cache/apk/*
+
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+WORKDIR /app
+
+COPY . .
+
+RUN composer install --no-dev --optimize-autoloader --classmap-authoritative --no-scripts \
+    && composer dump-autoload --no-dev --optimize --classmap-authoritative
+
+# No opcache preload here: preloading is an Octane/web concern, the CLI process
+# would only pay for it.
+COPY docker/prod/php-worker.ini /usr/local/etc/php/conf.d/99-prod.ini
+
+RUN mkdir -p /app/storage/logs /app/storage/framework/cache/data \
+    /app/storage/framework/sessions /app/storage/framework/views \
+    /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+USER www-data
+
+CMD ["php", "artisan", "horizon"]

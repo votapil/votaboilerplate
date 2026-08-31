@@ -2,6 +2,7 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
          colors="true"
 >
     <testsuites>
@@ -18,16 +19,72 @@
         </include>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
+        <!-- The memory limit has to live HERE, not on the `php -d` of the command that
+             starts the run: paratest spawns its workers as fresh processes that do not
+             inherit the parent's -d flags, so a parallel suite OOMs at the default 128M
+             while the same suite passes single-process. -->
+        <ini name="memory_limit" value="512M"/>
+
+        <!-- ── force + paired <server>: read this before touching anything below ──
+             The app container presets APP_ENV / CACHE_STORE / QUEUE_CONNECTION /
+             SESSION_DRIVER / DB_* as BOTH process env vars and $_SERVER entries.
+             A plain <env> never overrides a real environment variable, and Laravel
+             reads $_SERVER first — so without force="true" AND a matching <server>
+             line, the container's values silently win and the suite runs against the
+             wrong environment. Symptoms are indirect and cost days to trace:
+               * APP_ENV stays "local"      → runningUnitTests() is false, so service
+                                              providers build real clients instead of fakes;
+               * CACHE_STORE stays "redis"  → parallel workers share one cache and
+                                              collide on keys (random, unreproducible fails);
+               * QUEUE_CONNECTION stays
+                 "redis"                    → tests dispatch REAL jobs that the local
+                                              worker container happily executes;
+               * DB_DATABASE stays "app"    → RefreshDatabase truncates the DEV database.
+             On CI these lines are a no-op. They only ever matter locally, which is
+             exactly why they must ship with the template instead of being rediscovered. -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <server name="APP_ENV" value="testing" force="true"/>
+
+        <!-- Static, test-only key: nothing generates one for the test run, and an
+             empty APP_KEY fails the whole suite on the first encrypted cookie. -->
+        <env name="APP_KEY" value="base64:VGhpc0lzQVRlc3RPbmx5S2V5Rm9yUGhwdW5pdDEyMzQ="/>
+
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
-        <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
+
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <server name="CACHE_STORE" value="array" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <server name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <server name="SESSION_DRIVER" value="array" force="true"/>
+
+        <!-- Postgres, not sqlite :memory:. The app runs on postgres:16 everywhere else,
+             and a sqlite test bed lets ILIKE / jsonb / DISTINCT ON / real FK behaviour
+             pass green here and fail in production. Separate database on purpose —
+             see the DB_DATABASE warning above. -->
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <server name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_HOST" value="postgres" force="true"/>
+        <server name="DB_HOST" value="postgres" force="true"/>
+        <env name="DB_PORT" value="5432" force="true"/>
+        <server name="DB_PORT" value="5432" force="true"/>
+        <env name="DB_DATABASE" value="app_testing" force="true"/>
+        <server name="DB_DATABASE" value="app_testing" force="true"/>
+        <env name="DB_USERNAME" value="app" force="true"/>
+        <server name="DB_USERNAME" value="app" force="true"/>
+        <env name="DB_PASSWORD" value="secret" force="true"/>
+        <server name="DB_PASSWORD" value="secret" force="true"/>
+
+        <!-- Keep the error bot silent: an empty token makes the telegram log channel
+             a no-op instead of hitting the real Bot API from a test run. -->
+        <env name="TELEGRAM_ERROR_BOT_TOKEN" value="" force="true"/>
+        <server name="TELEGRAM_ERROR_BOT_TOKEN" value="" force="true"/>
+        <env name="TELEGRAM_ERROR_CHAT_ID" value="" force="true"/>
+        <server name="TELEGRAM_ERROR_CHAT_ID" value="" force="true"/>
+
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

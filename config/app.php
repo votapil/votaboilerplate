@@ -56,6 +56,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | Public origin of the SPA. The backend never serves the pages the user
+    | clicks, so anything that builds a link FOR a human — password-reset
+    | mails, e-mail verification, CORS allow-lists — must build it from here
+    | and not from APP_URL, which points at the API host.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Domain
+    |--------------------------------------------------------------------------
+    |
+    | Optional dedicated host for the Filament panel. When a request arrives on
+    | this host, routes/web.php sends it to /admin instead of the SPA shell.
+    | Leave empty to serve the panel from the main domain under /admin.
+    |
+    */
+
+    'admin_domain' => env('ADMIN_DOMAIN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Str;
+use Pdo\Mysql;
 
 return [
 
@@ -14,9 +15,13 @@ return [
     | the connection which will be utilized unless another connection
     | is explicitly specified when you execute a query / statement.
     |
+    | Postgres, not sqlite. The whole stack (compose, CI, phpunit.xml) runs on
+    | postgres:16, and code written against a sqlite default drifts silently —
+    | ILIKE, jsonb and DISTINCT ON all pass review and then fail in production.
+    |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -59,7 +64,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -79,7 +84,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -152,6 +157,20 @@ return [
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
+        // A CONNECT timeout is not optional. With phpredis' default of 0 ("wait
+        // forever") a Redis that stops answering does not degrade the app, it
+        // hangs every request holding a session or a cache read until PHP's own
+        // limit kills it — the whole site goes to ~30s per request while Redis
+        // is merely slow. Both connections below set `timeout` explicitly.
+        //
+        // A READ timeout is a per-connection decision, NOT a global one:
+        //   cache   — yes. A command that never answers must fail fast.
+        //   default — NO, this is the queue connection. Horizon and the queue
+        //             worker sit in a BLOCKING pop (BLPOP) waiting for a job;
+        //             a read timeout aborts that wait and the worker churns.
+        // `tests/Feature/Config/ConfigGuardsTest` holds both halves in place.
+        // Key names differ by client: phpredis reads `read_timeout`, predis
+        // reads `read_write_timeout`.
         'default' => [
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
@@ -159,6 +178,7 @@ return [
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_DB', '0'),
+            'timeout' => env('REDIS_TIMEOUT', 2.0),
             'max_retries' => env('REDIS_MAX_RETRIES', 3),
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
@@ -172,6 +192,9 @@ return [
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
+            'timeout' => env('REDIS_TIMEOUT', 2.0),
+            'read_timeout' => env('REDIS_READ_TIMEOUT', 5.0),
+            'read_write_timeout' => env('REDIS_READ_TIMEOUT', 5.0),
             'max_retries' => env('REDIS_MAX_RETRIES', 3),
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),

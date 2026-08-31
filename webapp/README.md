@@ -1,75 +1,37 @@
-# Nuxt Minimal Starter
+# webapp — Nuxt 4 SPA
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+The frontend. A token-authenticated single-page app (`ssr: false`) that Laravel serves through
+its catch-all route; in development it runs on its own dev server and proxies `/api` to the
+API container.
 
-## Setup
+## Requirements
 
-Make sure to install dependencies:
+Node **22** (`.nvmrc`, and `engines` in `package.json`). Run `nvm use` before any npm command —
+an older Node fails in ways that look like application bugs.
 
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## Commands
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+npm install        # also runs `nuxt prepare`
+npm run dev        # http://localhost:3000, /api proxied to http://localhost:81
+npm run build      # production build
+npm test           # unit gate (vitest, no Nuxt runtime)
 ```
 
-## Production
+`VITE_API_PROXY_TARGET` overrides the dev proxy target; `NUXT_PUBLIC_API_BASE` sets an absolute
+API origin when the SPA is hosted apart from the API.
 
-Build the application for production:
+## Layout
 
-```bash
-# npm
-npm run build
+| Path | What lives there |
+|---|---|
+| `app/utils/` | Pure logic. No Nuxt, no Pinia, no Vuetify. This is what the tests cover. |
+| `app/composables/` | Thin wrappers that give the pure core its side effects. |
+| `app/stores/` | Pinia stores (setup syntax). |
+| `app/plugins/` | Nuxt plugins — **only** here, see `app/plugins/README.md`. |
+| `app/middleware/` | Route guards; `auth.global.ts` handles auth and the permission gate. |
+| `app/pages/`, `app/layouts/`, `app/components/` | UI. Max 400 lines per file, enforced by a test. |
+| `i18n/locales/` | `en.json`, `ru.json` — the same keys in both, enforced by a test. |
+| `tests/unit/` | Everything here runs. Nothing is excluded. |
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Conventions and the reasoning behind them: `CLAUDE.md` in this directory.
