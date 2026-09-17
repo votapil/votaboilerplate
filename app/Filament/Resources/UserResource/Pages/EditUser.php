@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use App\Filament\Support\NavBadges;
 use App\Models\User;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Spatie\Permission\Models\Role;
@@ -63,8 +63,8 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action): void {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action): void {
                     if (! $this->isLastAdmin()) {
                         return;
                     }

@@ -12,7 +12,7 @@ production.
 **Backend** — Laravel 13 / PHP 8.4 on FrankenPHP + [Octane](https://laravel.com/docs/octane),
 PostgreSQL 16, Redis 7, [Horizon](https://laravel.com/docs/horizon) queues,
 [Sanctum](https://laravel.com/docs/sanctum) token auth, [spatie/laravel-permission] roles,
-[Filament 3](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
+[Filament 5](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
 `votapil/votacrudgenerator` for database-first scaffolding, Pest 5 + Pint.
 
 **Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 3, Pinia and vue-i18n in `webapp/`,

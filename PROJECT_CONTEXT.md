@@ -24,7 +24,7 @@
 
 - Backend: Laravel 13 / PHP 8.4 on FrankenPHP + Octane, Postgres 16, Redis 7, Horizon.
 - Frontend: Nuxt 4 + Vuetify 3 + Pinia in `webapp/`.
-- Admin: Filament 3 at `/admin`. Auth: Sanctum tokens. Permissions: spatie, guard `web`.
+- Admin: Filament 5 at `/admin`. Auth: Sanctum tokens. Permissions: spatie, guard `web`.
 - API base: `/api/v1`. Health: `/healthz` (deep). Addresses and access: `docs/LINKS.md`.
 - Anything non-obvious about the local run:
 

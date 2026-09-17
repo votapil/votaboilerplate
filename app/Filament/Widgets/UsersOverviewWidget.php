@@ -23,7 +23,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
  */
 class UsersOverviewWidget extends StatsOverviewWidget
 {
-    protected static ?string $pollingInterval = '60s';
+    protected ?string $pollingInterval = '60s';
 
     protected static ?int $sort = 1;
 

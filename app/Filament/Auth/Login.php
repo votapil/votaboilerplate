@@ -2,7 +2,7 @@
 
 namespace App\Filament\Auth;
 
-use Filament\Pages\Auth\Login as BaseLogin;
+use Filament\Auth\Pages\Login as BaseLogin;
 
 /**
  * Panel login that treats the e-mail as a case-insensitive identifier.
