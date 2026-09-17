@@ -51,6 +51,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | "json" stores the session payload as JSON instead of serialize(), so a
+    | tampered session can never instantiate a class. The cost is that only
+    | JSON-representable values survive a round trip: put an object in the
+    | session and it comes back as an array.
+    |
+    | Switching this on an existing deployment invalidates every live session.
+    |
+    */
+
+    'serialization' => 'json',
+
+    /*
+    |--------------------------------------------------------------------------
     | Session File Location
     |--------------------------------------------------------------------------
     |
