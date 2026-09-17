@@ -6,8 +6,12 @@ API container.
 
 ## Requirements
 
-Node **22** (`.nvmrc`, and `engines` in `package.json`). Run `nvm use` before any npm command —
+Node **24** (`.nvmrc`, and `engines` in `package.json`). Run `nvm use` before any npm command —
 an older Node fails in ways that look like application bugs.
+
+There are two `.nvmrc` files and they must say the same thing: CI reads the one at the repository
+root (`actions/setup-node` resolves `node-version-file` from there, not from `working-directory`),
+while `nvm use` inside this directory reads this one. Change one, change both.
 
 ## Commands
 
