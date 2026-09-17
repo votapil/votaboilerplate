@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
+use App\Support\AttributedEnumTransformer;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerApplicationServiceProvider as BaseTypeScriptTransformerServiceProvider;
 use Spatie\TypeScriptTransformer\Transformers\AttributedClassTransformer;
-use Spatie\TypeScriptTransformer\Transformers\EnumTransformer;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfigFactory;
 use Spatie\TypeScriptTransformer\Writers\GlobalNamespaceWriter;
 
@@ -27,13 +27,23 @@ class TypeScriptTransformerServiceProvider extends BaseTypeScriptTransformerServ
     protected function configure(TypeScriptTransformerConfigFactory $config): void
     {
         $config
+            // The stub registers the package's own EnumTransformer. It is replaced
+            // here because it publishes EVERY enum under app_path() — it checks that
+            // a class is an enum and never that anyone asked for it — so the first
+            // internal status enum would leak its cases to the frontend silently.
+            // See App\Support\AttributedEnumTransformer; the attributed-class
+            // transformer cannot stand in for it, as it emits object shapes and
+            // returns nothing for an enum.
             ->transformer(AttributedClassTransformer::class)
-            ->transformer(EnumTransformer::class)
+            ->transformer(AttributedEnumTransformer::class)
             ->transformDirectories(app_path())
 
-            // The base provider points this at resource_path('js/generated'), which
-            // this project does not have: the frontend is a separate Nuxt app.
-            ->outputDirectory(base_path('webapp/types'))
+            // app/types, not types: the base provider points at
+            // resource_path('js/generated') which this project does not have, and
+            // webapp/types is outside every tsconfig Nuxt generates — a file written
+            // there compiles for nobody. app/types is covered by `app/**/*` and
+            // already holds page-meta.d.ts.
+            ->outputDirectory(base_path('webapp/app/types'))
             ->writer(new GlobalNamespaceWriter('generated.d.ts'))
 
             // A timestamp arrives over the wire as an ISO string, never as a Carbon.

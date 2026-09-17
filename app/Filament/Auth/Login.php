@@ -3,6 +3,7 @@
 namespace App\Filament\Auth;
 
 use Filament\Auth\Pages\Login as BaseLogin;
+use SensitiveParameter;
 
 /**
  * Panel login that treats the e-mail as a case-insensitive identifier.
@@ -24,7 +25,7 @@ class Login extends BaseLogin
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    protected function getCredentialsFromFormData(array $data): array
+    protected function getCredentialsFromFormData(#[SensitiveParameter] array $data): array
     {
         return [
             'email' => mb_strtolower(trim((string) $data['email'])),

@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Livewire\Mechanisms\HandleRequests\EndpointResolver;
 
 /**
  * The SPA catch-all in routes/web.php must never shadow a backend web route.
@@ -26,24 +27,24 @@ test('the admin login page is served by Filament, not the SPA', function () {
 });
 
 test('the SPA fallback excludes Livewire on whatever prefix it mounted', function () {
-    // Livewire 4 derives its prefix from APP_KEY and serves everything under
-    // /livewire-<8 hex>, so the exclusion list cannot name it literally. Asserted
-    // against the route table instead of over HTTP on purpose: whether the panel
-    // survives today depends on which of the two registered first, and the whole
-    // reason the exclusion list exists is that this order must not matter.
-    $livewireRoute = collect(Route::getRoutes()->getRoutes())
-        ->first(fn ($route) => str_starts_with($route->uri(), 'livewire')
-            && ! str_contains($route->uri(), '{')
-            && in_array('GET', $route->methods(), true));
-
-    expect($livewireRoute)->not->toBeNull('Livewire registered no static GET route to check against');
-
+    // The prefix comes from Livewire itself, not from a literal: it is derived
+    // from APP_KEY (/livewire-<8 hex>), and hunting the route table for something
+    // starting with "livewire" would bake in the very assumption under test.
+    //
+    // Asserted against the route object rather than over HTTP on purpose. Whether
+    // the panel survives an actual request depends on which of the two registered
+    // first, and the whole reason the exclusion list exists is that this order
+    // must not matter — so a passing HTTP call would prove luck, not the barrier.
+    $prefix = EndpointResolver::prefix();
     $spa = Route::getRoutes()->getByName('spa');
-    $request = Request::create('/'.$livewireRoute->uri(), 'GET');
 
-    expect($spa->matches($request))->toBeFalse(
-        "the SPA fallback matches [{$livewireRoute->uri()}] and would serve the shell instead of Livewire"
-    );
+    foreach (['/livewire.js', '/update', '/upload-file'] as $path) {
+        $uri = $prefix.$path;
+
+        expect($spa->matches(Request::create($uri, 'GET'), includingMethod: false))->toBeFalse(
+            "the SPA fallback matches [{$uri}] and would serve the shell instead of Livewire"
+        );
+    }
 });
 
 test('a path that merely starts like an excluded prefix still reaches the SPA', function () {

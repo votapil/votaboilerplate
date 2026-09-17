@@ -59,11 +59,13 @@ return [
     | JSON-representable values survive a round trip: put an object in the
     | session and it comes back as an array.
     |
-    | Switching this on an existing deployment invalidates every live session.
+    | Switching this on an existing deployment invalidates every live session, so
+    | it stays overridable: a package that stores an object in the session is
+    | recovered with SESSION_SERIALIZATION=php and a restart, not with a deploy.
     |
     */
 
-    'serialization' => 'json',
+    'serialization' => env('SESSION_SERIALIZATION', 'json'),
 
     /*
     |--------------------------------------------------------------------------

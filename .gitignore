@@ -56,4 +56,4 @@ docker/.env
 
 # Checksum cache written next to the generated TypeScript; regenerated on every
 # `make ts-sync` and meaningless to anyone else.
-/webapp/types/typescript-transformer-manifest.json
+/webapp/app/types/typescript-transformer-manifest.json
