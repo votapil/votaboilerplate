@@ -20,7 +20,11 @@ return new class extends Migration
             $table->string('type')->comment('Notification class that produced this row');
             $table->string('notifiable_type')->comment('Model class the notification is addressed to');
             $table->unsignedBigInteger('notifiable_id')->comment('Id of that model; polymorphic, so no foreign key');
-            $table->text('data')->comment('JSON payload returned by the notification toArray()/toDatabase()');
+            // json, not text — Laravel's own stub ships text() here, but Filament's
+            // notification bell filters on `data->format` and Postgres refuses the
+            // ->> operator on a text column ("operator does not exist: text ->> unknown"),
+            // which takes down every page of the panel, not just the bell.
+            $table->json('data')->comment('JSON payload returned by the notification toArray()/toDatabase()');
             $table->timestamp('read_at')->nullable()->comment('When the recipient read it; null = unread');
             $table->timestamp('created_at')->nullable()->comment('Delivery timestamp');
             $table->timestamp('updated_at')->nullable()->comment('Last modification timestamp');

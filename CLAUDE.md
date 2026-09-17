@@ -1,6 +1,6 @@
 # Project Rules — the single source of truth
 
-Laravel 12 / PHP 8.4 backend, Nuxt 4 + Vuetify 4 in `webapp/`. The ONLY rules file; `AGENTS.md` is
+Laravel 13 / PHP 8.4 backend, Nuxt 4 + Vuetify 4 in `webapp/`. The ONLY rules file; `AGENTS.md` is
 a symlink to it — a second copy for another IDE always drifts.
 Read on demand: **`docs/PITFALLS.md` BEFORE touching Redis, queues, routing, uploads, tests or
 deploy** · `docs/LINKS.md` (addresses, access) · `docs/notes/INDEX.md` (lessons) ·

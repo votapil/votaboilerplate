@@ -20,7 +20,8 @@ single-file log did, and it reached 209 KB nobody read.
 
 ## Stack
 
-_(add notes about this project's own quirks here — the things you had to learn twice)_
+- [`useLayout` is auto-imported twice](nuxt-vuetify-uselayout-collision.md) — Nuxt 4.5 and Vuetify
+  both define it; the build warning is expected noise, nothing here calls it.
 
 ## Operations
 

@@ -2,21 +2,21 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "votapil/votaboilerplate",
     "type": "project",
-    "description": "Laravel 12 + Filament + Nuxt starter template: API-first backend, FrankenPHP/Octane, Postgres, Redis, Horizon.",
+    "description": "Laravel 13 + Filament + Nuxt starter template: API-first backend, FrankenPHP/Octane, Postgres, Redis, Horizon.",
     "keywords": ["laravel", "boilerplate", "octane", "filament", "nuxt"],
     "license": "MIT",
     "require": {
         "php": "^8.4",
         "dedoc/scramble": "^0.13.14",
-        "filament/filament": "^3.2",
-        "laravel/framework": "^12.0",
+        "filament/filament": "^5.0",
+        "laravel/framework": "^13.0",
         "laravel/horizon": "^5.45",
-        "laravel/mcp": "^0.6.0",
+        "laravel/mcp": "^1.0",
         "laravel/octane": "^2.14",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1",
-        "spatie/laravel-permission": "^7.2",
-        "spatie/laravel-typescript-transformer": "^2.6",
+        "laravel/tinker": "^3.0",
+        "spatie/laravel-permission": "^8.0",
+        "spatie/laravel-typescript-transformer": "^3.0",
         "votapil/votacrudgenerator": "dev-main"
     },
     "require-dev": {
@@ -25,9 +25,9 @@
         "laravel/pint": "^1.24",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-laravel": "^3.2",
-        "phpunit/phpunit": "^11.5.3"
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "phpunit/phpunit": "^13.3"
     },
     "autoload": {
         "psr-4": {

@@ -1,6 +1,6 @@
 # VotaBoilerplate
 
-An opinionated Laravel 12 + Nuxt 4 starter for projects that will be written **with coding agents**.
+An opinionated Laravel 13 + Nuxt 4 starter for projects that will be written **with coding agents**.
 It is not a demo app: there is no domain code in it. What it ships is the part that usually gets
 improvised badly in the first weeks — a container stack that runs, a versioned API skeleton with
 auth, tenant scoping and a real health check, an admin panel, a test setup that does not lie, a CI
@@ -9,13 +9,13 @@ production.
 
 ## Stack
 
-**Backend** — Laravel 12 / PHP 8.4 on FrankenPHP + [Octane](https://laravel.com/docs/octane),
+**Backend** — Laravel 13 / PHP 8.4 on FrankenPHP + [Octane](https://laravel.com/docs/octane),
 PostgreSQL 16, Redis 7, [Horizon](https://laravel.com/docs/horizon) queues,
 [Sanctum](https://laravel.com/docs/sanctum) token auth, [spatie/laravel-permission] roles,
-[Filament 3](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
-`votapil/votacrudgenerator` for database-first scaffolding, Pest 3 + Pint.
+[Filament 5](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
+`votapil/votacrudgenerator` for database-first scaffolding, Pest 5 + Pint.
 
-**Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 3, Pinia and vue-i18n in `webapp/`,
+**Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 4, Pinia and vue-i18n in `webapp/`,
 typed against the backend by `spatie/laravel-typescript-transformer`, unit-tested with Vitest.
 
 **Locales** — `en` and `ru` on both sides, kept in sync by a parity test.

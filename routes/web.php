@@ -49,5 +49,13 @@ Route::get('/{any?}', function (Request $request) {
     // prefix here at the same time you register it. The trailing (?:/|$) makes
     // each entry a whole first segment, so an app route named /uploads or
     // /administrators is not swallowed by the "up" and "admin" entries.
-    ->where('any', '^(?!(?:api|sanctum|up|healthz|storage|admin|filament|livewire|horizon|pulse|mcp)(?:/|$)).*$')
+    //
+    // "livewire" carries an optional suffix because Livewire 4 no longer serves
+    // from a fixed /livewire: it derives the prefix from APP_KEY and mounts
+    // everything under /livewire-<8 hex> (Livewire\Mechanisms\HandleRequests\
+    // EndpointResolver::prefix()). The hash therefore differs per environment
+    // and cannot be listed literally. This is the one entry that is NOT a whole
+    // first segment — an app route named /livewire-anything is excluded too,
+    // which is the right trade: that namespace belongs to Livewire.
+    ->where('any', '^(?!(?:api|sanctum|up|healthz|storage|admin|filament|livewire(?:-[^/]*)?|horizon|pulse|mcp)(?:/|$)).*$')
     ->name('spa');

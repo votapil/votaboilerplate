@@ -98,3 +98,21 @@ test('Redis connections have sane timeouts', function () {
 
     expect((float) ($cache['read_timeout'] ?? 0))->toBeGreaterThan(0, "redis.{$cacheConnection} needs a read timeout");
 });
+
+test('a cached value can never instantiate a class', function () {
+    // unserialize() with allowed_classes left open turns any writable cache entry
+    // into object instantiation: a Redis the app shares with something else, or a
+    // key an attacker can reach, becomes code execution on read. Nothing here
+    // caches objects — counters and arrays only, spatie/laravel-permission
+    // included — so the strict setting costs nothing and the day it starts
+    // costing something is the day someone should be asked why.
+    expect(config('cache.serializable_classes'))->toBeFalse();
+});
+
+test('sessions are stored as JSON, not as serialized PHP', function () {
+    // Same class of hole one layer up: with PHP serialization a tampered session
+    // payload names a class and unserialize() builds it. JSON cannot. The value is
+    // env-overridable on purpose (a package that puts an object in the session
+    // needs a way back), which is exactly why the default deserves a guard.
+    expect(config('session.serialization'))->toBe('json');
+});

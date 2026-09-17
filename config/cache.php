@@ -114,4 +114,21 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | Passed to unserialize() as "allowed_classes" when a cached value is read
+    | back. false forbids objects entirely, so a poisoned cache entry cannot
+    | instantiate a class on read. Nothing here caches objects — the cache holds
+    | counters (App\Support\CircuitBreaker) and arrays (App\Filament\Support\
+    | NavBadges), and spatie/laravel-permission caches a plain array too.
+    |
+    | Start caching objects and you must list their classes here instead.
+    |
+    */
+
+    'serializable_classes' => false,
+
 ];

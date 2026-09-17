@@ -82,7 +82,7 @@ services:
         condition: service_healthy
 
   webapp:
-    image: node:22-alpine
+    image: node:24-alpine
     restart: unless-stopped
     working_dir: /app/webapp
     command: npm run dev
@@ -93,7 +93,13 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       - HOST=0.0.0.0
-      - NUXT_PUBLIC_API_BASE=http://localhost:8080/api/v1
+      # No NUXT_PUBLIC_API_BASE on purpose. Left empty, the SPA requests
+      # relative /api/v1/... exactly as it does in production, and Vite's dev
+      # proxy forwards them to the app container — same origin, no CORS in the
+      # picture, one code path shared with prod. An absolute base here instead
+      # would leave the proxy dead and make dev the only cross-origin flow.
+      # `app` is the compose service; from this container localhost is node.
+      - VITE_API_PROXY_TARGET=http://app
       # An arbitrary host UID has no /etc/passwd entry inside the image, so HOME
       # would resolve to / and npm would fail writing its cache.
       - HOME=/tmp

@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   // on, and the session token lives in localStorage, which a server render cannot see.
   ssr: false,
 
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-09-17',
   devtools: { enabled: true },
 
   app: {
@@ -182,10 +182,14 @@ export default defineNuxtConfig({
   vite: {
     server: {
       proxy: {
-        // `npm run dev` on :3000 talking to the Laravel container on :81, so relative
-        // /api/... URLs work in development exactly as they do in production.
+        // Relative /api/... URLs work in development exactly as they do in
+        // production, so nothing has to know an absolute API address and CORS
+        // never enters a dev flow. The default is the published port for a
+        // `npm run dev` on the host; compose overrides it with the service name
+        // (VITE_API_PROXY_TARGET), because inside the node container localhost
+        // is the node container.
         '/api': {
-          target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:81',
+          target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
           changeOrigin: true,
         },
       },

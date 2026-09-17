@@ -2,14 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\Pages\CreateUser;
+use App\Filament\Resources\UserResource\Pages\EditUser;
+use App\Filament\Resources\UserResource\Pages\ListUsers;
 use App\Filament\Support\NavBadges;
 use App\Models\User;
 use App\Providers\Filament\AdminPanelProvider;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -62,7 +73,7 @@ class UserResource extends Resource
     |--------------------------------------------------------------------------
     */
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     protected static ?int $navigationSort = 1;
 
@@ -113,13 +124,18 @@ class UserResource extends Resource
         return ['name', 'email'];
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Section::make(__('admin.users.sections.profile'))
+        return $schema->components([
+            // columnSpanFull() on every Section is not decoration. Filament 4 dropped
+            // the implicit full-width span sections used to have, so without it these
+            // two land side by side in the schema's 2-column grid and the form reads
+            // as two unrelated cards instead of one stacked flow.
+            Section::make(__('admin.users.sections.profile'))
+                ->columnSpanFull()
                 ->columns(2)
                 ->schema([
-                    Forms\Components\TextInput::make('name')
+                    TextInput::make('name')
                         ->label(__('admin.users.fields.name'))
                         ->required()
                         ->maxLength(255),
@@ -127,7 +143,7 @@ class UserResource extends Resource
                     // Lower-cased on write so an account created here matches what the
                     // API would have stored, and so the panel login (which lower-cases
                     // what was typed) can find it again.
-                    Forms\Components\TextInput::make('email')
+                    TextInput::make('email')
                         ->label(__('admin.users.fields.email'))
                         ->email()
                         ->required()
@@ -140,7 +156,7 @@ class UserResource extends Resource
                     // Hashing is the model's 'hashed' cast, not this form's job.
                     // dehydrated() keeps an untouched field out of the update entirely,
                     // instead of overwriting the password with an empty string.
-                    Forms\Components\TextInput::make('password')
+                    TextInput::make('password')
                         ->label(__('admin.users.fields.password'))
                         ->password()
                         ->revealable()
@@ -149,16 +165,17 @@ class UserResource extends Resource
                         ->dehydrated(fn (?string $state): bool => filled($state))
                         ->helperText(__('admin.users.fields.password_hint')),
 
-                    Forms\Components\DateTimePicker::make('email_verified_at')
+                    DateTimePicker::make('email_verified_at')
                         ->label(__('admin.users.fields.email_verified_at')),
                 ]),
 
-            Forms\Components\Section::make(__('admin.users.sections.access'))
+            Section::make(__('admin.users.sections.access'))
+                ->columnSpanFull()
                 ->schema([
                     // The privilege-escalation surface of the panel. It is reachable only
                     // through UserPolicy, and removing the last administrator's role is
                     // blocked in Pages\EditUser.
-                    Forms\Components\Select::make('roles')
+                    Select::make('roles')
                         ->label(__('admin.users.fields.roles'))
                         ->relationship('roles', 'name')
                         ->multiple()
@@ -182,36 +199,36 @@ class UserResource extends Resource
             */
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('roles'))
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label(__('admin.users.fields.id'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('admin.users.fields.name'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label(__('admin.users.fields.email'))
                     ->searchable()
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('roles.name')
+                TextColumn::make('roles.name')
                     ->label(__('admin.users.fields.roles'))
                     ->badge()
                     ->color(fn (string $state): string => $state === self::ADMIN_ROLE ? 'danger' : 'gray'),
 
-                Tables\Columns\IconColumn::make('email_verified_at')
+                IconColumn::make('email_verified_at')
                     ->label(__('admin.users.fields.email_verified_at'))
                     ->boolean(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('admin.users.fields.created_at'))
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->label(__('admin.users.fields.updated_at'))
                     ->dateTime()
                     ->sortable()
@@ -235,22 +252,22 @@ class UserResource extends Resource
             |   the entire table into the select on every render.
             */
             ->filters([
-                Tables\Filters\TernaryFilter::make('email_verified_at')
+                TernaryFilter::make('email_verified_at')
                     ->label(__('admin.users.filters.verified'))
                     ->nullable(),
 
-                Tables\Filters\SelectFilter::make('roles')
+                SelectFilter::make('roles')
                     ->label(__('admin.users.filters.roles'))
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->searchable(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -258,9 +275,9 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 }

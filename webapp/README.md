@@ -6,8 +6,18 @@ API container.
 
 ## Requirements
 
-Node **22** (`.nvmrc`, and `engines` in `package.json`). Run `nvm use` before any npm command —
-an older Node fails in ways that look like application bugs.
+Node **24** — `.nvmrc` selects the line, `engines` pins the floor at **24.11** because that is
+where Nuxt 4.5 starts (`^22.19.0 || ^24.11.0 || >=26.0.0`); a 24.0–24.10 that `nvm use 24` happily
+picks is outside it. Run `nvm use` before any npm command — an older Node fails in ways that look
+like application bugs.
+
+There are two `.nvmrc` files and they must say the same thing: CI reads the one at the repository
+root (`actions/setup-node` resolves `node-version-file` from there, not from `working-directory`),
+while `nvm use` inside this directory reads this one. Change one, change both.
+
+`@vue/devtools-api` is a direct dependency although nothing here imports it: `pinia@4` declares it
+as a peer with `optional: false`, so the consumer has to supply it. It is pinned rather than left
+to npm's auto-install so the lockfile, not the npm version, decides which one lands.
 
 ## Commands
 

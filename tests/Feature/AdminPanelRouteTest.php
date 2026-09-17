@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Livewire\Mechanisms\HandleRequests\EndpointResolver;
+
 /**
  * The SPA catch-all in routes/web.php must never shadow a backend web route.
  *
@@ -20,6 +24,27 @@ test('the admin login page is served by Filament, not the SPA', function () {
         ->assertOk()
         ->assertSee('wire:', false)  // raw Livewire attribute
         ->assertDontSee('__nuxt');   // present if the SPA shell were served instead
+});
+
+test('the SPA fallback excludes Livewire on whatever prefix it mounted', function () {
+    // The prefix comes from Livewire itself, not from a literal: it is derived
+    // from APP_KEY (/livewire-<8 hex>), and hunting the route table for something
+    // starting with "livewire" would bake in the very assumption under test.
+    //
+    // Asserted against the route object rather than over HTTP on purpose. Whether
+    // the panel survives an actual request depends on which of the two registered
+    // first, and the whole reason the exclusion list exists is that this order
+    // must not matter — so a passing HTTP call would prove luck, not the barrier.
+    $prefix = EndpointResolver::prefix();
+    $spa = Route::getRoutes()->getByName('spa');
+
+    foreach (['/livewire.js', '/update', '/upload-file'] as $path) {
+        $uri = $prefix.$path;
+
+        expect($spa->matches(Request::create($uri, 'GET'), includingMethod: false))->toBeFalse(
+            "the SPA fallback matches [{$uri}] and would serve the shell instead of Livewire"
+        );
+    }
 });
 
 test('a path that merely starts like an excluded prefix still reaches the SPA', function () {
