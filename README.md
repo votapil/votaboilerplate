@@ -15,7 +15,7 @@ PostgreSQL 16, Redis 7, [Horizon](https://laravel.com/docs/horizon) queues,
 [Filament 5](https://filamentphp.com) admin panel, [Scramble](https://scramble.dedoc.co) OpenAPI,
 `votapil/votacrudgenerator` for database-first scaffolding, Pest 5 + Pint.
 
-**Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 3, Pinia and vue-i18n in `webapp/`,
+**Frontend** — Nuxt 4 (Vue 3, Composition API) with Vuetify 4, Pinia and vue-i18n in `webapp/`,
 typed against the backend by `spatie/laravel-typescript-transformer`, unit-tested with Vitest.
 
 **Locales** — `en` and `ru` on both sides, kept in sync by a parity test.

@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   // on, and the session token lives in localStorage, which a server render cannot see.
   ssr: false,
 
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-09-17',
   devtools: { enabled: true },
 
   app: {

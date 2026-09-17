@@ -39,7 +39,7 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
 
 
 # ----- Stage 2: SPA build -----------------------------------------------------
-FROM node:22-alpine AS webapp-build
+FROM node:24-alpine AS webapp-build
 
 WORKDIR /app/webapp
 

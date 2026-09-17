@@ -82,7 +82,7 @@ services:
         condition: service_healthy
 
   webapp:
-    image: node:22-alpine
+    image: node:24-alpine
     restart: unless-stopped
     working_dir: /app/webapp
     command: npm run dev
@@ -93,7 +93,11 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       - HOST=0.0.0.0
-      - NUXT_PUBLIC_API_BASE=http://localhost:8080/api/v1
+      # ORIGIN ONLY — no /api/v1. Callers pass the full path already
+      # (app/stores/auth.ts posts to '/api/v1/auth/login') and useApi() just
+      # prefixes this value, so a version segment here yields
+      # /api/v1/api/v1/auth/login and every request 404s.
+      - NUXT_PUBLIC_API_BASE=http://localhost:8080
       # An arbitrary host UID has no /etc/passwd entry inside the image, so HOME
       # would resolve to / and npm would fail writing its cache.
       - HOME=/tmp

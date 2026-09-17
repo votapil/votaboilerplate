@@ -16,7 +16,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "spatie/laravel-permission": "^8.0",
-        "spatie/laravel-typescript-transformer": "^2.6",
+        "spatie/laravel-typescript-transformer": "^3.0",
         "votapil/votacrudgenerator": "dev-main"
     },
     "require-dev": {
