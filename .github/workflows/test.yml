@@ -32,7 +32,7 @@ jobs:
       # Credentials and database name must match what phpunit.xml forces, or the
       # suite connects to nothing.
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: app_testing
           POSTGRES_USER: app

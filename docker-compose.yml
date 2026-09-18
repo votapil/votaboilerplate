@@ -129,7 +129,7 @@ services:
     command: php artisan schedule:work
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     # Parallel tests tear down every table of every worker database in one
     # transaction and blow past the default max_locks_per_transaction=64 with a
@@ -140,7 +140,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - pgsql_data:/var/lib/postgresql/data
+      # /var/lib/postgresql, NOT .../data. The 18+ images store the cluster in a
+      # major-version-specific subdirectory, and refuse to start when they find a
+      # cluster sitting directly in data/ — which is where every image up to 17
+      # put it. A volume created before this change cannot simply be remounted:
+      # a major upgrade needs pg_upgrade or a dump/restore either way. See
+      # docs/PITFALLS.md row 20.
+      - pgsql_data:/var/lib/postgresql
       # Creates the separate <POSTGRES_DB>_testing database on first start; see
       # `make test-db` if the volume already exists.
       - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro

@@ -36,6 +36,43 @@ next round of rework comes from.
 | 18 | **Laravel's `notifications` stub stores `data` as `text`** | Every page of the admin panel died with `SQLSTATE[42883]: operator does not exist: text ->> unknown` — not just the bell. Filament's notification list filters on `data->format`, Laravel turns that into `data->>'format'`, and Postgres has no `->>` for `text`. Invisible until something actually queries inside the column, so it can ship and sit quiet for months | `$table->json('data')` in the migration. Laravel's own `make:notifications-table` stub writes `text()`, so this is wrong in every fresh project too — check it whenever a panel or a package reads a field out of a JSON column on Postgres |
 | 19 | **`NUXT_PUBLIC_API_BASE` carrying the version segment** | Every backend and frontend test green, `make verify` green, and logging into the SPA on the dev server impossible: the compose env set the base to `…:8080/api/v1` while callers already pass `/api/v1/auth/login`, so the request went to `/api/v1/api/v1/auth/login` and 404'd. Invisible to the suite — Pest never loads the SPA and Vitest never makes a request — and invisible in production too, where the base is empty because Laravel serves the build | Leave the base **empty** and let Vite's `/api` proxy forward to the app container (`VITE_API_PROXY_TARGET`). The SPA then requests the same relative URLs in dev as in production and CORS never enters a dev flow. An absolute base is the tempting fix and the wrong one: it leaves the proxy dead and makes dev the only cross-origin path, so dev and prod stop exercising the same code. The only way this class of bug surfaces at all is opening the app in a browser — see the golden rule above |
 
+## Upgrading Postgres across a major
+
+Not a row, because it is a procedure rather than a trap — but it is the one infrastructure change
+here that cannot be done by editing a tag. Two separate things break at once:
+
+1. **A major never reads the previous major's data directory.** True of Postgres everywhere, and
+   the reason `pg_upgrade` and dump/restore exist.
+2. **The 18+ Docker images moved the cluster** into a major-version-specific subdirectory. Every
+   image up to 17 put it directly in `/var/lib/postgresql/data`, which is where the old volume
+   mount pointed. An 18 image finding a cluster there refuses to start at all, with
+   `Counter to that, there appears to be PostgreSQL data in: /var/lib/postgresql/data`.
+
+So the compose mount changed from `pgsql_data:/var/lib/postgresql/data` to
+`pgsql_data:/var/lib/postgresql`, and an existing volume has to be rebuilt:
+
+```bash
+# 1. dump from the OLD major, while it is still running
+docker compose exec -T postgres pg_dumpall -U "$POSTGRES_USER" > pg-dumpall.sql
+
+# 2. stop and drop the old cluster (the container holds the volume open)
+docker compose stop postgres && docker compose rm -f postgres
+docker volume rm <project>_pgsql_data
+
+# 3. bring up the new major — initdb recreates the databases and runs docker/postgres/initdb/
+docker compose up -d postgres
+
+# 4. restore. "already exists" on the databases initdb just made is expected; nothing else is
+docker compose exec -T postgres psql -U "$POSTGRES_USER" -d postgres -q < pg-dumpall.sql
+```
+
+Verified on this repository going 16.11 → 18.6: data, row counts and column types (including the
+`json` on `notifications.data`) came back intact, and `make verify` stayed green — parallel Pest
+included, so the `max_locks_per_transaction=256` barrier in row 8 survives the move.
+
+**Keep the dump until the new cluster has served real traffic.** There is no way back down: 18
+reads a 16 dump, 16 does not read an 18 cluster.
+
 ## Adding a row
 
 A trap earns a row when it cost a round of rework and could not have been deduced from the code.
